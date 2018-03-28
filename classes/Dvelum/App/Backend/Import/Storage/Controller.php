@@ -19,6 +19,8 @@
 namespace Dvelum\App\Backend\Import\Storage;
 
 use Dvelum\App\Backend;
+use Dvelum\Config;
+use Dvelum\Orm\Model;
 
 class Controller extends Backend\Controller
 {
@@ -30,5 +32,20 @@ class Controller extends Backend\Controller
     public function getObjectName(): string
     {
         return 'dvelum_import';
+    }
+
+    /**
+     * Get user settings
+     */
+    public function settingsListAction()
+    {
+        $section = $this->request->post('section', 'string', '');
+
+        $importConfig = Config::storage()->get('import.php');
+        /**
+         * @var \Model\Dvelum\Import $settingsModel
+         */
+        $settingsModel = Model::factory($importConfig->get('settings_object'));
+        $this->response->success($settingsModel->settingsList($this->user->getId(), $section));
     }
 }

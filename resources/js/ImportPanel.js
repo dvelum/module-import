@@ -18,6 +18,7 @@ Ext.ns('dvelum.import');
  */
 Ext.define('dvelum.import.Panel',{
     extend: 'Ext.panel.Panel',
+    alias: ['widget.dvelum_import_panel'],
     /**
      * Controller URL
      * @param string controllerUrl
@@ -129,17 +130,19 @@ Ext.define('dvelum.import.Panel',{
      */
     importTimeout:900,
 
+    settingsPanelConfig:null,
+
     config:{
         controllerActions:{
             save:'save',
-            upload:'upload',
+            upload:'upload'
+        },
+        settingsPanelConfig:{
 
         }
     },
 
     initComponent:function(){
-
-        this.importHelpText = this.lang.click_column;
 
         this.noIcon = '/resources/dvelum-module-import/images/no.png';
         this.noNotRequiredIcon = '/resources/dvelum-module-import/images/no-g.png';
@@ -270,8 +273,7 @@ Ext.define('dvelum.import.Panel',{
      * Create and instantiate settings panel
      */
     initSettingsPanel:function(){
-        this.settingsPanelCmp = Ext.create('dvelum.import.SettingsPanel' , {
-            controllerUrl:this.controllerUrl,
+        var panelConfig = Ext.apply({
             importPanel:this,
             lang:this.lang,
             listeners:{
@@ -282,7 +284,8 @@ Ext.define('dvelum.import.Panel',{
                     scope:this
                 }
             }
-        });
+        }, this.settingsPanelConfig);
+        this.settingsPanelCmp = Ext.create('dvelum.import.SettingsPanel' , panelConfig);
     },
     /**
      * Init import form fields
@@ -320,8 +323,6 @@ Ext.define('dvelum.import.Panel',{
                 }
             }
         );
-
-
 
         /**
          * Insert additional fields
@@ -695,42 +696,50 @@ Ext.define('dvelum.import.Panel',{
         },this);
     },
     /**
-     * Start data import
+     * Collect import settings
+     * @return {Object}
      */
-    importData:function(){
-        var me = this;
+    getImportSettings:function(){
         var params = {};
-        var error = false;
 
-        if(Ext.isObject(this.extraParams)){
-            params = Ext.apply(params , this.extraParams);
+        if (Ext.isObject(this.extraParams)) {
+            params = Ext.apply(params, this.extraParams);
         }
 
+        var error = false;
         /**
          * Validate fields
          */
-        Ext.each(this.expectedColumns , function(record){
-            params['columns['+record.id+']'] = record.columnIndex;
-            if(record.columnIndex == -1){
-                if(record.required || (!Ext.isEmpty(this.visibleGroup) && this.visibleGroup == record.group)){
-                    error = true;
-                }
+        Ext.each(this.expectedColumns, function (record) {
+            params['columns[' + record.id + ']'] = record.columnIndex;
+            if(record.required || (!Ext.isEmpty(this.visibleGroup) && this.visibleGroup == record.group)){
+                error = true;
             }
         });
 
-        if(error){
+        if (error) {
             Ext.Msg.alert(appLang.MESSAGE, appLang.FILL_FORM);
-            return;
+            return false;
         }
 
+        return params;
+    },
+    /**
+     * Start data import
+     */
+    importData:function(){
+        //  var me = this;
 
-        if(this.settingsPanel){
-            this.sendSaveSettingsRequest(function(){
-                me.sendImportRequest(params);
-            });
-        } else {
-            this.sendImportRequest(params);
-        }
+        var params = this.getImportSettings();
+        this.sendImportRequest(params);
+
+        // if(this.settingsPanel){
+        //     this.sendSaveSettingsRequest(function(){
+        //         me.sendImportRequest(params);
+        //     });
+        // } else {
+        //     this.sendImportRequest(params);
+        // }
 
     },
     sendSaveSettingsRequest:function(callback){

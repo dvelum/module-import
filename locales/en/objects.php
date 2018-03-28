@@ -7,7 +7,8 @@
       'section' => 'Section',
       'user' => 'User',
       'settings' => 'Settings',
-      'title' => 'Title',
+      'name' => 'Settings name',
+      'update_date' => 'Update date',
     ),
   ),
 ); 

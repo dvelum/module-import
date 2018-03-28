@@ -30,7 +30,13 @@ Ext.define('dvelum.import.SettingsPanel',{
 
     settingsCfg:null,
 
+    config:{
+       controllerUrl:'',
+       extraParams:{}
+    },
+
     initComponent:function(){
+
         this.items = [
             {
                 icon:'/resources/dvelum-module-import/images/open.png',
@@ -71,7 +77,9 @@ Ext.define('dvelum.import.SettingsPanel',{
      */
     showLoadSettings:function(){
         var win = Ext.create('dvelum.import.SettingsWindow',{
-            controllerUrl:this.controllerUrl
+            controllerUrl:this.controllerUrl,
+            extraParams:this.extraParams,
+            lang:this.lang
         });
 
         win.on('settingsLoaded' , function(settings){
@@ -88,7 +96,7 @@ Ext.define('dvelum.import.SettingsPanel',{
      */
     showSaveSettings:function(){
 
-        var params = this.importPanel.getImportParams();
+        var params = this.importPanel.getImportSettings();
 
         if(!params){
             Ext.Msg.alert(appLang.MESSAGE, this.lang.msg_set_settings);
@@ -101,7 +109,8 @@ Ext.define('dvelum.import.SettingsPanel',{
             controllerUrl:this.controllerUrl,
             saveMode:true,
             settingsCfg:params,
-            lang:this.lang
+            lang:this.lang,
+            extraParams:this.extraParams
         });
 
         win.on('settingsSaved' , function(settings){
@@ -194,6 +203,7 @@ Ext.define('dvelum.import.SettingsWindow' , {
             save:'settingssave',
             delete:'settingsdelete'
         },
+        extraParams:{},
         layout:'fit',
         modal:true,
         width:400,
