@@ -25,6 +25,8 @@ use Dvelum\Config\ConfigInterface;
 use Dvelum\FileStorage\AbstractAdapter;
 use Dvelum\Import\Reader\ReaderInterface;
 use Dvelum\Lang;
+use Dvelum\Orm\Record;
+use Dvelum\Orm\RecordInterface;
 use Dvelum\Request;
 use Dvelum\File;
 use Dvelum\Orm\Model;
@@ -148,6 +150,19 @@ class Manager
         $this->fileExt = $ext;
         $this->filePath = $this->storage->getPath() . '/' . $uploadedFile['path'];
 
+        try{
+            /**
+             * @var RecordInterface $tmpObject
+             */
+            $tmpObject = Record::factory($this->config->get('tmp_files_object'));
+            $tmpObject->setValues([
+                'file' => $uploadedFile['id'],
+                'upload_date' => date('Y-m-d H:i:s')
+            ]);
+            $tmpObject->save();
+        }catch (Exception $e){
+            Model::factory($this->config->get('tmp_files_object'))->logError($e->getMessage());
+        }
         return true;
     }
 

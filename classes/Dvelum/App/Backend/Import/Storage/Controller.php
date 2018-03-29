@@ -20,10 +20,25 @@ namespace Dvelum\App\Backend\Import\Storage;
 
 use Dvelum\App\Backend;
 use Dvelum\Config;
-use Dvelum\Orm\Model;
+use Dvelum\Filter;
+use Dvelum\Import\Settings;
+use Dvelum\Request;
+use Dvelum\Response;
 
 class Controller extends Backend\Controller
 {
+    /**
+     * @var Settings $settings
+     */
+    protected $settings;
+
+    public function __construct(Request $request, Response $response)
+    {
+        parent::__construct($request, $response);
+        $importConfig = Config::storage()->get('import.php');
+        $this->settings = new Settings($importConfig);
+    }
+
     public function getModule(): string
     {
         return 'Dvelum_Import_Storage';
@@ -40,12 +55,85 @@ class Controller extends Backend\Controller
     public function settingsListAction()
     {
         $section = $this->request->post('section', 'string', '');
+        $this->response->success($this->settings->settingsList($this->user->getId(), $section));
+    }
 
-        $importConfig = Config::storage()->get('import.php');
-        /**
-         * @var \Model\Dvelum\Import $settingsModel
-         */
-        $settingsModel = Model::factory($importConfig->get('settings_object'));
-        $this->response->success($settingsModel->settingsList($this->user->getId(), $section));
+    /**
+     * Load user settings by id
+     */
+    public function settingsLoadAction()
+    {
+        $settingId = $this->request->post('id', Filter::FILTER_INTEGER, false);
+
+        if( empty($settingId)){
+            $this->response->error($this->lang->get('WRONG_REQUEST'));
+            return;
+        }
+        $settingsData = $this->settings->getUserSettings($this->user->getId(), $settingId);
+
+        if(empty($settingsData)){
+            $this->response->error($this->lang->get('WRONG_REQUEST'));
+            return;
+        }
+
+        $this->response->success($settingsData);
+    }
+
+    public function settingsSaveAction()
+    {
+        if(!$this->checkCanEdit()){
+            return;
+        }
+
+        $section = $this->request->post('section', Filter::FILTER_STRING, '');
+        $settingId =  $this->request->post('settings_id', Filter::FILTER_INTEGER, 0);
+        $settingTitle =  $this->request->post('settings_name', Filter::FILTER_STRING, '');
+
+        $columns = $this->request->post('columns', Filter::FILTER_ARRAY, false);
+        $firstRow = $this->request->post('first_row', Filter::FILTER_INTEGER, false);
+
+        if(empty($settingTitle) || empty($section)){
+            $this->response->error($this->lang->get('FILL_FORM'));
+            return;
+        }
+
+        if($settingId){
+            $settingsData = $this->settings->getUserSettings($this->user->getId(), $settingId);
+            if(empty($settingsData)){
+                $this->response->error($this->lang->get('WRONG_REQUEST'));
+                return;
+            }
+        }
+
+        $config = [
+            'columns' => $columns,
+            'first_row' => $firstRow
+        ];
+
+        $result = $this->settings->update($settingId, $settingTitle, $this->user->getId(), $section, $config);
+
+        if(empty($result)){
+            $this->response->error($this->lang->get('CANT_EXEC'));
+            return;
+        }
+        $this->response->success($result);
+    }
+
+    public function settingsDeleteAction()
+    {
+        if(!$this->checkCanDelete()){
+            return;
+        }
+        $settingId =  $this->request->post('id', Filter::FILTER_INTEGER, 0);
+        if(empty($settingId)){
+            $this->response->error($this->lang->get('WRONG_REQUEST'));
+            return;
+        }
+
+        if($this->settings->delete($settingId, $this->user->getId())){
+            $this->response->success();
+        }else{
+            $this->response->error($this->lang->get('CANT_EXEC'));
+        }
     }
 }

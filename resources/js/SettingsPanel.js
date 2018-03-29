@@ -1,13 +1,34 @@
 Ext.ns('dvelum.import');
 
+
+Ext.define('dvelum.import.SettingsModel',{
+    extend:'Ext.data.Model',
+    fields:[
+        {
+            name:"id",
+            type:"integer"
+        },{
+            name:"name",
+            type:"string"
+        },{
+            name:"default",
+            type:"boolean"
+        },{
+            name:"update_date",
+            type:"date",
+            dateFormat:"Y-m-d H:i:s"
+        }
+    ],
+    idProperty:'id'
+});
 /**
  *
  *
  * @event settingsLoaded
- * @param {Object}    {setting:{} , settings_info:{}}
+ * @param {Object}    {id:int,name:string,settings:{}...}
  *
  * @event settingsSaved
- * @param {Object}    {setting:{} , settings_info:{}}
+ * @param {Object}    {id:int,name:string,settings:{}...}
  */
 Ext.define('dvelum.import.SettingsPanel',{
     extend:'Ext.panel.Panel',
@@ -84,7 +105,7 @@ Ext.define('dvelum.import.SettingsPanel',{
 
         win.on('settingsLoaded' , function(settings){
             this.fireEvent('settingsLoaded' , settings);
-            this.setSettingsConfig(settings.settings_info);
+            this.setSettingsConfig(settings);
             win.close();
             app.msg(appLang.MESSAGE, this.lang.settings_loaded);
         },this);
@@ -115,7 +136,7 @@ Ext.define('dvelum.import.SettingsPanel',{
 
         win.on('settingsSaved' , function(settings){
             this.fireEvent('settingsSaved' , settings);
-            this.setSettingsConfig(settings.settings_info);
+            this.setSettingsConfig(settings);
             win.close();
             app.msg(appLang.MESSAGE, this.lang.settings_saved);
         },this);
@@ -130,7 +151,7 @@ Ext.define('dvelum.import.SettingsPanel',{
         this.settingsCfg = info;
         if(info){
             this.down('#settings_id').setValue(info.id);
-            this.down('#configName').setText(info.title);
+            this.down('#configName').setText(info.name);
         }
     },
     /**
@@ -146,10 +167,10 @@ Ext.define('dvelum.import.SettingsPanel',{
  * Settings window
  *
  * @event settingsLoaded
- * @param {Object}    {setting:{} , settings_info:{}}
+ * @param {Object}    {id:int,name:string,settings:{}...}
  *
  * @event settingsSaved
- * @param {Object}    {setting:{} , settings_info:{}}
+ * @param {Object}     {id:int,name:string,settings:{}...}
  *
  */
 Ext.define('dvelum.import.SettingsWindow' , {
@@ -298,29 +319,14 @@ Ext.define('dvelum.import.SettingsWindow' , {
     initStore:function(){
         this.dataStore = Ext.create('Ext.data.Store',{
             autoLoad:true,
-            fields:[
-                {
-                    name:"id",
-                    type:"integer"
-                },{
-                    name:"title",
-                    type:"string"
-                },{
-                    name:"default",
-                    type:"boolean"
-                },{
-                    name:"update_date",
-                    type:"date",
-                    dateFormat:"Y-m-d H:i:s"
-                }
-            ],
+            model:'dvelum.import.SettingsModel',
             proxy:{
                 simpleSortMode:true,
                 extraParams:this.extraParams,
                 url:this.controllerUrl + this.controllerActions.list,
                 reader:{
                     idProperty:"id",
-                    root:"data"
+                    rootProperty:"data"
                 },
                 type:"ajax"
             }
@@ -330,6 +336,7 @@ Ext.define('dvelum.import.SettingsWindow' , {
      * Init settings grid
      */
     initGrid:function(){
+        var me = this;
         this.dataGrid = Ext.create('Ext.grid.Panel',{
             columnLines:false,
             rowLines:false,
@@ -347,13 +354,12 @@ Ext.define('dvelum.import.SettingsWindow' , {
                 {
                     dataIndex:'id',
                     flex:1,
-                    renderer:function(value , meta , record , rowInde , colIndex, store , view){
-
+                    renderer:function(value , meta , record){
                         meta.style = "font-size:14px;font-seight:bold;cursor:pointer;";
 
-                        var result = record.get('title');
+                        var result = record.get('name');
                         if(record.get('default')){
-                            result+= ' <span style="font-size:9px">('+this.lang.default+')</span>';
+                            result += ' <span style="font-size:9px">(' + me.lang.default + ')</span>';
                         }
 
                         result+='<br><span style="font-size:9px">'
@@ -416,11 +422,10 @@ Ext.define('dvelum.import.SettingsWindow' , {
      * @var {Ext.data.Model} record
      */
     saveSettings:function(record){
-
-        var requestParams = Ext.apply({
-            'setting_id':record.get('id'),
-            'setting_title':record.get('title')
-        }, this.settingsCfg);
+        var requestParams = Ext.apply(this.settingsCfg,{
+            'settings_id': record.get('id'),
+            'settings_name': record.get('name')
+        });
 
         Ext.Ajax.request({
             url:this.controllerUrl + this.controllerActions.save,
@@ -486,7 +491,7 @@ Ext.define('dvelum.import.SettingsWindow' , {
 
             this.dataStore.insert(0,{
                 'id':0,
-                'title':text,
+                'name':text,
                 'default':0,
                 'update_date':null
             });

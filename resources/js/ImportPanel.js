@@ -270,6 +270,14 @@ Ext.define('dvelum.import.Panel',{
         this.callParent();
     },
     /**
+     * Получить ссылку на форму
+     * @returns {Ext.formPanel}
+     */
+    getForm:function(){
+        return this.importForm;
+    },
+    /**
+    /**
      * Create and instantiate settings panel
      */
     initSettingsPanel:function(){
@@ -357,7 +365,7 @@ Ext.define('dvelum.import.Panel',{
                     return;
                 } else{
                     if(handle.settingsPanel){
-                        handle.settingsPanelCmp.setSettingsConfig(action.result.settings_info);
+                        handle.settingsPanelCmp.setSettingsConfig(action.result.settings);
                     }
                     // handle.resetIdentify();
                     handle.showRecords(action.result ,action.result.col_count , action.result.uploadId  , false);
@@ -520,7 +528,7 @@ Ext.define('dvelum.import.Panel',{
          *  Apply saved setings
          */
         if(result.settings){
-            this.applySettings(result.settings);
+            this.applySettings(result.settings.settings);
         }
         this.importFormContainer.updateLayout();
         this.updateLayout();
@@ -700,6 +708,7 @@ Ext.define('dvelum.import.Panel',{
      * @return {Object}
      */
     getImportSettings:function(){
+
         var params = {};
 
         if (Ext.isObject(this.extraParams)) {
@@ -712,7 +721,7 @@ Ext.define('dvelum.import.Panel',{
          */
         Ext.each(this.expectedColumns, function (record) {
             params['columns[' + record.id + ']'] = record.columnIndex;
-            if(record.required || (!Ext.isEmpty(this.visibleGroup) && this.visibleGroup == record.group)){
+            if(record.columnIndex == -1 &&  (record.required || (!Ext.isEmpty(this.visibleGroup) && (this.visibleGroup == record.group)))){
                 error = true;
             }
         });

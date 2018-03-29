@@ -1,4 +1,4 @@
-<?php return array (
+<?php return array(
     'table' => 'dvelum_import',
     'engine' => 'InnoDB',
     'connection' => 'default',
@@ -15,9 +15,9 @@
     'slave_connection' => 'default',
     'log_detalization' => 'default',
     'fields' =>
-        array (
+        array(
             'section' =>
-                array (
+                array(
                     'type' => '',
                     'unique' => '',
                     'db_isNull' => false,
@@ -30,14 +30,14 @@
                     'allow_html' => false,
                 ),
             'user' =>
-                array (
+                array(
                     'type' => 'link',
                     'unique' => '',
                     'db_isNull' => false,
                     'required' => true,
                     'validator' => '',
                     'link_config' =>
-                        array (
+                        array(
                             'link_type' => 'object',
                             'object' => 'user',
                         ),
@@ -46,7 +46,7 @@
                     'db_unsigned' => true,
                 ),
             'settings' =>
-                array (
+                array(
                     'type' => '',
                     'unique' => '',
                     'db_isNull' => true,
@@ -58,7 +58,7 @@
                     'allow_html' => true,
                 ),
             'name' =>
-                array (
+                array(
                     'type' => '',
                     'unique' => '',
                     'db_isNull' => false,
@@ -71,7 +71,7 @@
                     'allow_html' => false,
                 ),
             'update_date' =>
-                array (
+                array(
                     'type' => '',
                     'unique' => '',
                     'db_isNull' => false,
@@ -80,13 +80,24 @@
                     'db_type' => 'datetime',
                     'db_default' => false,
                 ),
+            'default' =>
+                array(
+                    'type' => '',
+                    'unique' => '',
+                    'db_isNull' => false,
+                    'required' => false,
+                    'validator' => '',
+                    'db_type' => 'boolean',
+                    'db_default' => 0,
+                ),
         ),
+
     'indexes' =>
-        array (
+        array(
             'section_user' =>
-                array (
+                array(
                     'columns' =>
-                        array (
+                        array(
                             0 => 'section',
                             1 => 'user',
                         ),

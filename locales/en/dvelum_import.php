@@ -36,4 +36,5 @@
     'unsupported_format' => 'Unsupported file type',
     'no_file' => 'file upload error',
     'hint' => 'Hint',
+    'cant_load_default' => 'Can not load default settings'
 ); 

@@ -21,10 +21,12 @@ namespace Dvelum\App\Backend\Import;
 use Dvelum\App\Backend;
 use Dvelum\Config;
 use Dvelum\Import\Manager;
+use Dvelum\Import\Settings;
 use Dvelum\Lang;
 use Dvelum\Orm;
 use Dvelum\Request;
 use Dvelum\Response;
+use Dvelum\Filter;
 
 
 class Controller extends Backend\Controller
@@ -67,6 +69,8 @@ class Controller extends Backend\Controller
             return;
         }
 
+        $this->response->setFormat(Response::FORMAT_JSON);
+
         $objectName = strtolower($this->request->post('object', 'string', ''));
         $section = $this->request->post('section', 'string', '');
 
@@ -91,14 +95,14 @@ class Controller extends Backend\Controller
 
         $uploadId = $manager->getUploadId();
         $data = $manager->getPreview();
-        /**
-         * @var \Model\Dvelum\Import $settingsModel
-         */
-        $settingsModel = Orm\Model::factory($importConfig->get('settings_object'));
 
-        $userSettings = $settingsModel->getSettings($this->user->getId(), $section);
+        $settings =  new Settings($importConfig);
+
+        $userSettings = $settings->getDefaultSettings($this->user->getId(), $section);
+
         if(empty($userSettings)){
-            $userSettings = false;
+            $this->response->error(Lang::lang('dvelum_import')->get('cant_load_default'));
+            return;
         }
 
         $expectedColumns = $this->getExpectedColumns($objectName);
@@ -110,7 +114,6 @@ class Controller extends Backend\Controller
            'col_count' => count($data[0]),
            'expectedColumns' => $expectedColumns
         ]);
-
     }
 
     /**
@@ -133,5 +136,18 @@ class Controller extends Backend\Controller
             ];
         }
         return  $expectedColumns;
+    }
+
+
+    public function importAction()
+    {
+        if(!$this->checkCanEdit()){
+            return;
+        }
+
+        $objectName = strtolower($this->request->post('object', Filter::FILTER_STRING, ''));
+        $columns = $this->request->post('columns', Filter::FILTER_ARRAY, false);
+        $firstRow = $this->request->post('first_row', Filter::FILTER_INTEGER, false);
+        $uploadId = Request::post('uploadid', Filter::FILTER_STRING, false);
     }
 }
