@@ -46,7 +46,7 @@ Ext.define('dvelum.import.Panel',{
     gridContainer:null,
     /**
      * Import data grid
-     * @param {Ext.grid.GridPanel} dataGrid
+     * @param {Ext.grid.Panel} dataGrid
      */
     dataGrid:null,
     /**
@@ -96,7 +96,6 @@ Ext.define('dvelum.import.Panel',{
 
     border:false,
     bodyBorder:false,
-    items:[],
     /**
      * Localisation object
      * @property {object}
@@ -362,13 +361,12 @@ Ext.define('dvelum.import.Panel',{
                 if(!action.result.success){
                     handle.importForm.hide();
                     Ext.Msg.alert(appLang.MSG, action.result.msg);
-                    return;
                 } else{
                     if(handle.settingsPanel){
                         handle.settingsPanelCmp.setSettingsConfig(action.result.settings);
                     }
                     // handle.resetIdentify();
-                    handle.showRecords(action.result ,action.result.col_count , action.result.uploadId  , false);
+                    handle.showRecords(action.result, action.result.col_count, action.result.uploadId, false);
                     handle.settingsLoaded = true;
                 }
             },
@@ -547,7 +545,7 @@ Ext.define('dvelum.import.Panel',{
          * @param {Ext.data.Model} record - The record for the current row
          * @param {int} rowIndex -The index of the current row
          * @param {int} colIndex - The index of the current column
-         * @param {Ext.data.Store} - The data store
+         * @param {Ext.data.Store} -  The data store
          * @param {Ext.view.View} - The current view
          * @return string
          */
@@ -616,7 +614,6 @@ Ext.define('dvelum.import.Panel',{
      * @param {string} key
      */
     columnIdentified:function(column, colIndex , key){
-        var iForm = this.importForm.getForm();
         var abortedGroup = false;
         var selectedGroup = false;
 
@@ -639,13 +636,13 @@ Ext.define('dvelum.import.Panel',{
                 /*
                  * Disable selection on second time
                  */
-//		 if(record.id == key && record.columnIndex == colIndex){
-//		     this.markIdentified(record , false);
-//		     column.setText('Колонка '+ (record.columnIndex+1));
-//		     record.columnIndex = -1;
-//		     return;
-//
-//		 }
+                //		 if(record.id == key && record.columnIndex == colIndex){
+                //		     this.markIdentified(record , false);
+                //		     column.setText('Колонка '+ (record.columnIndex+1));
+                //		     record.columnIndex = -1;
+                //		     return;
+                //
+                //		 }
                 /*
                  * Unset other selection with same key
                  */
@@ -737,11 +734,11 @@ Ext.define('dvelum.import.Panel',{
      * Start data import
      */
     importData:function(){
-        //  var me = this;
-
         var params = this.getImportSettings();
         this.sendImportRequest(params);
 
+        // save settings before send import command
+        // var me = this;
         // if(this.settingsPanel){
         //     this.sendSaveSettingsRequest(function(){
         //         me.sendImportRequest(params);
@@ -749,7 +746,6 @@ Ext.define('dvelum.import.Panel',{
         // } else {
         //     this.sendImportRequest(params);
         // }
-
     },
     sendSaveSettingsRequest:function(callback){
         var me = this;
@@ -764,7 +760,7 @@ Ext.define('dvelum.import.Panel',{
             method: 'post',
             params:requestParams,
             scope:me,
-            success: function(response, request) {
+            success: function(response) {
                 response =  Ext.JSON.decode(response.responseText);
                 if(!response.success){
                     Ext.Msg.alert(appLang.MESSAGE , response.msg);
@@ -826,7 +822,7 @@ Ext.define('dvelum.import.Panel',{
         //this.dataGrid.getView().focusRow(this._firstDataRow-1);
     },
     /**
-     * Установить значек идентифицированной записи
+     * Mark identified field
      * @param {object} record
      * @param {boolean} status
      */
@@ -922,7 +918,7 @@ Ext.define('dvelum.import.Panel',{
     /**
      * @todo update implementation
      * Check if group has selected fields
-     * @param integer id - group id
+     * @param {int} id - group id
      * return boolean
      */
     groupHasSelection:function(id){

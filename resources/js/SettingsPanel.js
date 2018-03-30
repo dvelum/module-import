@@ -1,6 +1,5 @@
 Ext.ns('dvelum.import');
 
-
 Ext.define('dvelum.import.SettingsModel',{
     extend:'Ext.data.Model',
     fields:[
@@ -237,6 +236,7 @@ Ext.define('dvelum.import.SettingsWindow' , {
         this.initGrid();
 
         this.buttons = [];
+        var me = this;
 
         if(this.saveMode){
             this.title = this.lang.save_settings;
@@ -246,16 +246,16 @@ Ext.define('dvelum.import.SettingsWindow' , {
                     tooltip:this.lang.save_as_new_setting,
                     text:this.lang.save_as_new_setting,
                     handler:this.saveAsNew,
-                    scope:this
+                    scope:me
                 },' ' + this.lang.or_rewrite_old
             ];
             this.buttons.push({
                     text:this.lang.save,
-                    scope:this,
+                    scope:me,
                     disabled:false,
                     itemId:true,
                     handler:function(btn){
-                        var sm  = this.dataGrid.getSelectionModel();
+                        var sm  = me.dataGrid.getSelectionModel();
                         if(!sm.hasSelection()){
                             btn.disable();
                             return;
@@ -268,11 +268,11 @@ Ext.define('dvelum.import.SettingsWindow' , {
             this.title = this.lang.load_settings;
             this.buttons.push({
                     text:this.lang.load,
-                    scope:this,
+                    scope:me,
                     disabled:true,
                     itemId:'loadBtn',
                     handler:function(btn){
-                        var sm  = this.dataGrid.getSelectionModel();
+                        var sm  = me.dataGrid.getSelectionModel();
                         if(!sm.hasSelection()){
                             btn.disable();
                             return;
@@ -298,7 +298,7 @@ Ext.define('dvelum.import.SettingsWindow' , {
                 }
             },this);
 
-            this.dataGrid.on('celldblclick' , function(grid, td, cellIndex, record, tr, rowIndex, e, eOpts ){
+            this.dataGrid.on('celldblclick' , function(grid, td, cellIndex, record){
                 this.loadSettings(record);
             },this);
 
@@ -402,7 +402,7 @@ Ext.define('dvelum.import.SettingsWindow' , {
                 id:record.get('id')
             },
             scope:this,
-            success: function(response, request) {
+            success: function(response) {
                 this.loadedSettings = null;
                 response =  Ext.JSON.decode(response.responseText);
                 if(!response.success){
@@ -432,7 +432,7 @@ Ext.define('dvelum.import.SettingsWindow' , {
             method: 'post',
             params:requestParams,
             scope:this,
-            success: function(response, request) {
+            success: function(response) {
                 this.loadedSettings = null;
                 response =  Ext.JSON.decode(response.responseText);
                 if(!response.success){
@@ -467,7 +467,7 @@ Ext.define('dvelum.import.SettingsWindow' , {
                 id:record.get('id')
             },
             scope:this,
-            success: function(response, request) {
+            success: function(response) {
                 response =  Ext.JSON.decode(response.responseText);
                 if(!response.success){
                     Ext.Msg.alert(appLang.MESSAGE , response.msg);
@@ -485,7 +485,7 @@ Ext.define('dvelum.import.SettingsWindow' , {
      */
     saveAsNew:function(){
         Ext.MessageBox.prompt(appLang.MESSAGE, this.lang.enter_new_setting_name, function(btn,text){
-            if(btn!='ok' || text.length<1) {
+            if(btn!=='ok' || text.length<1) {
                 return;
             }
 

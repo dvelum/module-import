@@ -126,8 +126,13 @@ class Controller extends Backend\Controller
         $expectedColumns = [];
         $config = Orm\Record\Config::factory($objectName);
         $fields = $config->getFields();
+        $primary = $config->getPrimaryKey();
         foreach ($fields as $field)
         {
+            // Skip primary key
+            if($field->getName() === $primary){
+                continue;
+            }
             $expectedColumns[] = [
                 'id'=> $field->getName(),
                 'text'=> $field->getTitle(),
