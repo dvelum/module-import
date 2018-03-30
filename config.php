@@ -3,7 +3,7 @@ return [
     'id' => 'dvelum-module-import',
     'version' => '2.0.0',
     'author' => 'Kirill Yegorov',
-    'name' => 'DVelum Import (requires FileStorage)',
+    'name' => 'DVelum Import',
     'configs' => './configs',
     'locales' => './locales',
     'resources' =>'./resources',
