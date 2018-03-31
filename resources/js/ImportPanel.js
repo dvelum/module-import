@@ -628,7 +628,7 @@ Ext.define('dvelum.import.Panel',{
                 }
 
             },this);
-            column.setText('Колонка '+ (colIndex+1));
+            column.setText(this.lang.column + ' ' + (colIndex+1));
 
         }else{
 
@@ -638,7 +638,7 @@ Ext.define('dvelum.import.Panel',{
                  */
                 //		 if(record.id == key && record.columnIndex == colIndex){
                 //		     this.markIdentified(record , false);
-                //		     column.setText('Колонка '+ (record.columnIndex+1));
+                //		     column.setText(this.lang.column + ' ' + (record.columnIndex+1));
                 //		     record.columnIndex = -1;
                 //		     return;
                 //
@@ -648,7 +648,7 @@ Ext.define('dvelum.import.Panel',{
                  */
                 if(record.id == key && record.columnIndex != colIndex && record.columnIndex !=-1){
                     var col = this.dataGrid.getView().headerCt.getGridColumns()[record.columnIndex];
-                    col.setText('Колонка '+ (record.columnIndex+1));
+                    col.setText(this.lang.column + ' ' + (record.columnIndex+1));
                     record.columnIndex = -1;
                 }
 

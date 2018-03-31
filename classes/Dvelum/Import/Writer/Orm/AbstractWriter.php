@@ -17,15 +17,19 @@
  */
 declare(strict_types=1);
 
-namespace Dvelum\Import\Adapter\Orm;
+namespace Dvelum\Import\Writer\Orm;
 
+use Dvelum\Import\Writer\WriterInterface;
 use Dvelum\Config\ConfigInterface;
-use Dvelum\Import\Adapter\AdapterInterface;
 use Dvelum\Import\Reader\ReaderInterface;
+use Dvelum\Import\Writer\Result;
 use Dvelum\Orm\Record;
 
-abstract class AbstractAdapter implements AdapterInterface
+abstract class AbstractWriter implements WriterInterface
 {
+    const MODE_INSERT = 'insert';
+    const MODE_INSERT_UPDATE = 'insert_update';
+
     /**
      * @var ConfigInterface $config
      */
@@ -44,20 +48,25 @@ abstract class AbstractAdapter implements AdapterInterface
         $this->config = $config;
     }
 
+    /**
+     * @param ReaderInterface $reader
+     */
     public function setReader(ReaderInterface $reader): void
     {
         $this->reader = $reader;
     }
 
+    /**
+     * @return array
+     */
     public function getErrors()
     {
         return $this->errors;
     }
 
-    abstract public function import(): bool;
-
-    protected function getConfig() : Record\Config
-    {
-        return Record\Config::factory($this->config->get('object'));
-    }
+    /**
+     * @param array $settings
+     * @return Result
+     */
+    abstract public function import(array $settings): Result;
 }

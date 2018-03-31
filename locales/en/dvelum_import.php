@@ -36,5 +36,10 @@
     'unsupported_format' => 'Unsupported file type',
     'no_file' => 'file upload error',
     'hint' => 'Hint',
-    'cant_load_default' => 'Can not load default settings'
+    'cant_load_default' => 'Can not load default settings',
+    'result_success' => 'Successfully imported',
+    'result_error' => 'Errors',
+    'result_new' => 'Records created',
+    'result_update' => 'Records updated',
+    'result_time' => 'Import time s.',
 ); 

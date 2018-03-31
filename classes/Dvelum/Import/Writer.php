@@ -17,25 +17,16 @@
  */
 declare(strict_types=1);
 
-namespace Dvelum\Import\Adapter\Orm;
+namespace Dvelum\Import;
 
-use Dvelum\Orm\Model;
+use Dvelum\Config\ConfigInterface;
+use Dvelum\Import\Writer\WriterInterface;
 
-class OrmModel extends AbstractAdapter
+class Writer
 {
-
-    public function import(): bool
+    static public function factory(ConfigInterface $config) : WriterInterface
     {
-        try{
-            $objectConfig = Record\Config::factory($this->config->get('object'));
-        }catch (\Exception $e){
-            $this->errors[] = $e->getMessage();
-            return false;
-        }
-
-        foreach ($this->reader as $record)
-        {
-
-        }
+        $writerClass = $config->get('adapter');
+        return new $writerClass($config);
     }
 }

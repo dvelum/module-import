@@ -23,6 +23,7 @@ use Dvelum\App\Session\User;
 use Dvelum\Config;
 use Dvelum\Config\ConfigInterface;
 use Dvelum\FileStorage\AbstractAdapter;
+use Dvelum\Import\Writer\WriterInterface;
 use Dvelum\Import\Reader\ReaderInterface;
 use Dvelum\Lang;
 use Dvelum\Orm\Record;
@@ -58,6 +59,10 @@ class Manager
      * @var ReaderInterface $reader
      */
     protected $reader;
+    /**
+     * @var WriterInterface $writer
+     */
+    protected $writer;
 
     public function __construct(ConfigInterface $config)
     {
@@ -133,6 +138,7 @@ class Manager
             return false;
         }
 
+
         $this->storage->getConfig()->set('user_id', $user->getId());
         if($this->config->offsetExists('log_object') && !empty($this->config->get('log_object'))){
             $this->storage->setLog(Model::factory($this->config->get('log_object'))->getLogsAdapter());
@@ -148,7 +154,8 @@ class Manager
 
         $this->uploadId = $uploadedFile['id'];
         $this->fileExt = $ext;
-        $this->filePath = $this->storage->getPath() . '/' . $uploadedFile['path'];
+        $this->filePath = $this->storage->getPath() . $uploadedFile['path'];
+
 
         try{
             /**
@@ -179,26 +186,54 @@ class Manager
      * Get records for import data preview
      * @return array
      */
-    public function getPreview() : array
+    public function getUploadedPreview() : array
     {
         $limit = $this->config->get('limit_preview');
-        $reader = $this->getReader();
+
+        $reader = Reader::factory($this->getReaderConfig($this->filePath));
+        $reader->setDataSource($this->filePath);
+
         return $reader->readRecords($limit);
     }
 
     /**
-     * Get import reader
-     * @return ReaderInterface
+     * @param string $filePath
+     * @return ConfigInterface|null
+     * @throws Exception
      */
-    public function getReader() : ReaderInterface
+    public function getReaderConfig(string $filePath) : ?ConfigInterface
     {
-        if(empty($this->reader)){
-            $readerConfig = $this->config->get('format')[$this->fileExt];
-            $readerClass = $readerConfig['adapter'];
-            $readerConfig = Config\Factory::create($readerConfig['config']);
-            $this->reader = new $readerClass($readerConfig);
-            $this->reader->setDataSource($this->filePath);
+        $ext = File::getExt($filePath);
+        $config = $this->config->get('format');
+        if(isset($config[$ext])){
+            return Config\Factory::create($config[$ext]);
         }
-        return $this->reader;
+        return null;
+    }
+
+    /**
+     * @param ConfigInterface $adapterConfig
+     */
+    public function setWriter(WriterInterface $adapterConfig): void
+    {
+        $this->writer = $adapterConfig;
+    }
+
+    /**
+     * @param string $filePath
+     * @param array $settings
+     * @return array
+     */
+    public function import(string $filePath, array $settings) : Writer\Result
+    {
+        if(empty($this->writer)){
+            throw new \Exception('Writer is undefined');
+        }
+
+        $reader = Reader::factory($this->getReaderConfig($filePath));
+        $reader->setDataSource($filePath);
+
+        $this->writer->setReader($reader);
+        return $this->writer->import($settings);
     }
 }

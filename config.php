@@ -7,6 +7,7 @@ return [
     'configs' => './configs',
     'locales' => './locales',
     'resources' =>'./resources',
+    'templates' => './templates',
     'vendor'=>'Dvelum',
     'require'=>[
       'dvelum-module-filestorage'

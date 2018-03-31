@@ -22,12 +22,13 @@ use Dvelum\App\Backend;
 use Dvelum\Config;
 use Dvelum\Import\Manager;
 use Dvelum\Import\Settings;
+use Dvelum\Import\Writer;
 use Dvelum\Lang;
 use Dvelum\Orm;
 use Dvelum\Request;
 use Dvelum\Response;
 use Dvelum\Filter;
-
+use Dvelum\View;
 
 class Controller extends Backend\Controller
 {
@@ -94,7 +95,7 @@ class Controller extends Backend\Controller
         }
 
         $uploadId = $manager->getUploadId();
-        $data = $manager->getPreview();
+        $data = $manager->getUploadedPreview();
 
         $settings =  new Settings($importConfig);
 
@@ -112,7 +113,8 @@ class Controller extends Backend\Controller
            'data' => $data,
            'settings' =>  $userSettings,
            'col_count' => count($data[0]),
-           'expectedColumns' => $expectedColumns
+           'expectedColumns' => $expectedColumns,
+           'uploadId' => $uploadId
         ]);
     }
 
@@ -129,16 +131,22 @@ class Controller extends Backend\Controller
         $primary = $config->getPrimaryKey();
         foreach ($fields as $field)
         {
-            // Skip primary key
             if($field->getName() === $primary){
-                continue;
+                $expectedColumns[] = [
+                    'id'=> $field->getName(),
+                    'text'=> $this->lang->get('PRIMARY_KEY'),
+                    'columnIndex' => -1,
+                    'required' => false
+                ];
+            }else{
+                $expectedColumns[] = [
+                    'id'=> $field->getName(),
+                    'text'=> $field->getTitle(),
+                    'columnIndex' => -1,
+                    'required' => $field->isRequired()
+                ];
             }
-            $expectedColumns[] = [
-                'id'=> $field->getName(),
-                'text'=> $field->getTitle(),
-                'columnIndex' => -1,
-                'required' => $field->isRequired()
-            ];
+
         }
         return  $expectedColumns;
     }
@@ -149,10 +157,46 @@ class Controller extends Backend\Controller
         if(!$this->checkCanEdit()){
             return;
         }
-
         $objectName = strtolower($this->request->post('object', Filter::FILTER_STRING, ''));
         $columns = $this->request->post('columns', Filter::FILTER_ARRAY, false);
         $firstRow = $this->request->post('first_row', Filter::FILTER_INTEGER, false);
-        $uploadId = Request::post('uploadid', Filter::FILTER_STRING, false);
+        $uploadId = $this->request->post('uploadid', Filter::FILTER_STRING, false);
+
+        $importConfig = Config::storage()->get('import.php');
+        $importWriterConfig = Config::storage()->get('import_orm.php');
+        /**
+         * @var \Model_Filestorage $model
+         */
+        $model = Orm\Model::factory('Filestorage');
+
+        $item = $model->getItem($uploadId);
+        if(empty($item) || $item['user_id']!=$this->user->getId()){
+            $this->response->error($this->lang->get('WRONG_REQUEST'). 'code 1');
+            return;
+        }
+
+        $fileStorage = $model->getStorage();
+
+
+        $filePath = $fileStorage->getFilePath($uploadId);
+
+        if(empty($filePath)){
+            $this->response->error($this->lang->get('WRONG_REQUEST') . 'code 2');
+            return;
+        }
+
+        $manager = new Manager($importConfig);
+        $manager->setStorage($fileStorage);
+        $manager->setWriter(Writer::factory($importWriterConfig));
+
+        $result = $manager->import($filePath, ['columns' =>$columns,'first_row'=>$firstRow,'object'=>$objectName]);
+        $fileStorage->remove($uploadId);
+
+        $template = View::factory();
+        $template->setData([
+            'lang' => Lang::lang('dvelum_import'),
+            'data' => $result->__toArray()
+        ]);
+        $this->response->success(['html'=>$template->render('dvelum_import/result.php')]);
     }
 }
